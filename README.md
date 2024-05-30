@@ -13,7 +13,7 @@ A server and clinet for chatting using a GUI which uses TCP
 
 ## Installation
 
-Install my-project with npm
+Install my-project with pip
 
 ```bash
   pip install -r requirements.txt
