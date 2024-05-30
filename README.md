@@ -21,5 +21,5 @@ Install my-project with npm
     
 ## Authors
 
-- original GUI idea from :  [@kimiakeivan](https://github.com/kimiakeivan) 
+- original GUI idea from :  [@kimiakeivan](https://github.com/kimiakeivan) and her [TCP chatroom](https://github.com/kimiakeivan/TCP_Chatroom_python) 
 - sending and reciveing structure [@assaabriiii](https://github.com/assaabriiii) 
