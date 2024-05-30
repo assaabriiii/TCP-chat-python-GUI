@@ -4,7 +4,7 @@ import time
 
 # Global variables
 HOST = '127.0.0.1'
-PORT = 1535
+PORT = 1533
 ADDR = (HOST, PORT)
 FORMAT = 'utf-8'
 
@@ -18,15 +18,17 @@ def handle_client(client_socket, client_address):
 
     # Function to broadcast message to all clients
     def broadcast(message, client_sockets):
-        print(message)
         for sock in client_sockets:
             if sock != client_socket:
                 sock.send(message)
     
     def find_recipient_sockets(recipients):
+        edited_recipients = [] 
+        for name in recipients: 
+            edited_recipients.append(str(name.strip()))
         recipient_sockets = []
         for sock, uname in clients.items():
-            if uname in recipients:
+            if uname in edited_recipients:
                 recipient_sockets.append(sock)
         return recipient_sockets
 
@@ -35,33 +37,26 @@ def handle_client(client_socket, client_address):
         username = client_socket.recv(1024).decode(FORMAT)
         usernames.append(username)
         clients[client_socket] = username
-        
-        
-        
-        o = f"Hello {username}\n" + " ^ " + str(usernames)
+        o = f"Hello {username}" + " ^ " + str(usernames)
         client_socket.send(o.encode(FORMAT))
         
-        
-
         # Send welcome message to the newly joined user
-        mess = f"{username} join the chat room\nHi {username}, welcome to the chat room\n" + " ^ " + str(usernames)
+        mess = f"{username} joined the chat room\nHi {username}, welcome to the chat room\n" + " ^ " + str(usernames)
         broadcast(mess.encode(FORMAT), clients.keys())
         
-
         while True:
             message = client_socket.recv(1024).decode(FORMAT)
         
             # If message is a request for the list of attendees
             if message.strip() == "Please send the list of attendees.":
-                print("1")
                 attendees = ",".join(clients.values())
                 mess = f"Here is the list of attendees:\n{attendees}\n" + " ^ " + str(usernames)
                 client_socket.send(mess.encode(FORMAT))
             
             # If message is to leave the chat room
             elif message == "Bye.":
-                print("2")
-                notification = f"for YoU ^ " + str(usernames)
+                notification = str(usernames)
+                usernames.remove(username)
                 client_socket.send(notification.encode(FORMAT))
                 mess = f"{username} left the chat room\n" + " ^ " + str(usernames)
                 broadcast(mess.encode(FORMAT), clients.keys())
@@ -70,7 +65,6 @@ def handle_client(client_socket, client_address):
                 break
         
             elif message.startswith("Public message, length="):
-                print("3")
                 notification = f"for YoU ^ " + str(usernames)
                 client_socket.send(notification.encode(FORMAT))
                 message = message.split(":")
@@ -78,37 +72,30 @@ def handle_client(client_socket, client_address):
                 broadcast(mess.encode(FORMAT), clients.keys())
                
             elif message.startswith("Private message, length="):
-                print("4")
                 notification = f"for YoU ^ " + str(usernames)
                 client_socket.send(notification.encode(FORMAT))
-                # Extract recipients and message body
-                # message_parts = message.split(" to ")
-                # message_body = ":".join(message_parts[1:])
-                # recipients = 
                 message_body = message.split(":") 
                 message_body = message_body[1]
-                
-                recv = message.split(" to ")
+                recv = message.split("to")
                 recv = recv[1].split(":")
-                recipients = recv[0].split(",")                
-
+                recipients = recv[0].split(",")             
                 recipient_sockets = find_recipient_sockets(recipients)
-                
-                print(clients)
-                
+                print(recipients)
                 print(recipient_sockets)
 
-            
                 # Send the private message to the specified recipients
                 if recipient_sockets:
-                    mess = f"Private message, length={len(message)} to {', '.join(recipients)}:{message_body}" + " ^ " + str(usernames)
+                    mess = f"Private message, length={len(message)} to {', '.join(recipients)} from {username}:{message_body}" + " ^ " + str(usernames)
                     broadcast(mess.encode(FORMAT), recipient_sockets)
-                    print(recipient_sockets)
+                    print("IF")
+                    print(message)
                 else:
                     client_socket.send(f"{message}".encode(FORMAT))
+                    print("ELSE")
+                    print(message)
         
             else:
-                pass 
+                del clients[client_socket] 
     except:
         # If any exception occurs, remove the client and close the connection
         if username:
